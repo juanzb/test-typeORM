@@ -10,5 +10,6 @@ export const configDB: TypeOrmModuleOptions = {
   synchronize: true,
   autoLoadEntities: true,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  timezone: 'America/Bogota',
   migrations: [],
 }
