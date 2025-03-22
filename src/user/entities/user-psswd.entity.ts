@@ -17,8 +17,8 @@ export class UserPass {
   password: string;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createPassdAt: Date;
+  createPsswdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  updatePassdAt: Date;
+  updatePsswdAt: Date;
 }

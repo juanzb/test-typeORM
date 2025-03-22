@@ -33,6 +33,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   cellphoneNum: string;
 
+  @IsEmail()
+  @Matches(/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/, {
+    message: 'El correo electrónico no es válido.',
+  })
+  @IsOptional()
+  email: string;
+
   @IsNumber()
   @Min(18)
   @Max(100)
@@ -49,13 +56,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsOptional()
   birthdate: Date;
-
-  @IsEmail()
-  @Matches(/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/, {
-    message: 'El correo electrónico no es válido.',
-  })
-  @IsOptional()
-  email: string;
 
   @IsNotEmpty()
   @MinLength(8)

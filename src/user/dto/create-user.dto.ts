@@ -28,6 +28,12 @@ export class CreateUserDto {
   @IsOptional()
   cellphoneNum: string;
   
+  @IsEmail()
+  @Matches(/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/, {
+    message: 'El correo electrónico no es válido.',
+  })
+  email: string;
+  
   @IsNumber()
   @Min(18)
   @Max(100)
@@ -41,12 +47,6 @@ export class CreateUserDto {
   @IsDate()
   @IsOptional()
   birthdate: Date;
-
-  @IsEmail()
-  @Matches(/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/, {
-    message: 'El correo electrónico no es válido.',
-  })
-  email: string;
 
   @IsNotEmpty()
   @MinLength(8)

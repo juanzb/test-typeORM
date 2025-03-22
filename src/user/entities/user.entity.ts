@@ -17,6 +17,9 @@ export class User {
   @Column({ length: 10, unique: true})
   cellphoneNum: string;
 
+  @Column({ length: 100, unique: true })
+  email: string;
+
   @Column()
   age: number;
 
@@ -25,9 +28,6 @@ export class User {
 
   @Column({type: 'timestamp', nullable: true})
   birthdate: Date;
-
-  @Column({ length: 100, unique: true })
-  email: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
