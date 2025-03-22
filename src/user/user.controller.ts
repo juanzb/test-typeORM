@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { ResponseApi } from 'src/common/dto/api-response.dto';
 import { Response } from 'express';
-
+import { DataFullUser } from './dto/dataFull-user.dto';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -31,7 +31,7 @@ export class UserController {
   }
 
   @Get('all')
-  async getAllUsers(@Res() res: Response): Promise<Response<User[]>> {
+  async getAllUsers(@Res() res: Response): Promise<Response<ResponseApi<User[]>>> {
     let response: ResponseApi<User[]>;
     try {
       let users: User[] = await this.userService.getAll();
@@ -51,21 +51,83 @@ export class UserController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string ) {
-    return this.userService.findOne(+id);
+  async findOne(@Res() res: Response,@Param('id') id: string ): Promise<Response<ResponseApi<User>>> {
+    let response: ResponseApi<User>;
+    try {
+      const userFound = await this.userService.findOne(+id);
+      if (!userFound) throw new NotFoundException('No se encontró el usuario');
+      response = {
+        success: true,
+        message: 'Se obtuvo el usuario correctamente',
+        data: userFound
+      }
+      return res.status(200).send(response);
+    } catch (error) {
+      response = {
+        success: false,
+        message: error.message || 'Error inesperado, intente de nuevo',
+      }
+      return res.status(500).send(response)
+    }
+  }
+
+  @Get('fulldata/:id')
+  async findOneFull(@Res() res: Response,@Param('id') id: string ): Promise<Response<ResponseApi<DataFullUser>>> {
+    let response: ResponseApi<DataFullUser>;
+    try {
+      const userFound: DataFullUser = await this.userService.findOneUserFull(+id);
+      response = {
+        success: true,
+        message: 'Se obtuvo el usuario correctamente',
+        data: userFound
+      }
+      return res.status(200).send(response);
+    } catch (error) {
+      response = {
+        success: false,
+        message: error.message || 'Error inesperado, intente de nuevo',
+      }
+      return res.status(500).send(response)
+    }
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async update(@Res() res: Response, @Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<Response<ResponseApi<User>>> {
+    let response: ResponseApi<User>
+    try {
+      const userUpdate = await this.userService.update(+id, updateUserDto);
+      response = {
+        success: true,
+        message: 'El usuario se actualizo correctamente',
+        data: userUpdate
+      }
+      return res.status(200).send(response)
+    } catch (error) {
+      response = {
+        success: false,
+        message: error.message,
+      }
+      return res.status(500).send(response)
+    }
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    let data = await this.userService.remove(+id);
-    if (!data) {
-      return `no existe el usuario con id: ${id}`
+  async remove(@Res() res: Response, @Param('id') id: string): Promise<Response<ResponseApi<User>>> {
+    let response: ResponseApi<User>
+    try {
+      let data = await this.userService.remove(+id);
+      response = {
+        success: true,
+        message: 'El usuario se elimino correctamente',
+        data: data
+      }
+      return res.status(200).send(response)
+    } catch (error) {
+      response = {
+        success: false,
+        message: error.message || 'Error inesperado, intente de nuevo',
+      }
+      return res.status(500).send(response)
     }
-    return data
   }
 }

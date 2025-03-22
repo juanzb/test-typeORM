@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { DataFullUser } from './dto/dataFull-user.dto';
 
 @Injectable()
 export class UserService {
@@ -24,13 +25,13 @@ export class UserService {
             user: createdUser,
             password: await this.generateHashPassword(dataUser.password),
         })
-        return createdUser 
+        return createdUser
       })
       return userCreated
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         const duplicateField = this.getDuplicateField(error.message, dataUser);
-        throw {message: `El ${duplicateField} ya está asociado a un usuario`};
+        throw new Error (`El ${duplicateField} ya está asociado a un usuario`);
       }
       throw error;
     }
@@ -38,47 +39,63 @@ export class UserService {
 
   async getAll() : Promise<User[]> {
     try {
-      const user = await this.userRepository.find();
-      return user
+      const users = await this.userRepository.find();
+      return users
     } catch (error) {
        throw error;
     }
   }
 
-  async findOne(id: number) : Promise<User | null> {
-    return await this.userRepository.findOneBy({id: id});
-  }
-
-  private async findOneUserFull(id: number): Promise<User | null> {
-    return await this.dataSource.manager.query(`select *, user_pass.password, user_pass.createPassdAt, user_pass.updatePassdAt from user join user_pass on user.id=user_pass.userId where user.id=${id}`)
-  }
-
-  async update(id: number, dataUserUpdate: UpdateUserDto): Promise<User | null> {
+  async findOne(id: number) : Promise<User> {
     try {
-      (await this.userRepository.update({id: id},{...dataUserUpdate})).affected
-      const userUpdate = await this.userRepository.findOneBy({id: id})
-      return userUpdate
+      const user = await this.userRepository.findOneBy({id: id});
+      if(user) return user;
+      throw new Error(`No se encontró el usuario con id ${id}`); 
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findOneUserFull(id: number): Promise<DataFullUser> {
+    try {
+      const dataFullUser = await this.dataSource.manager.query(`select user.*, user_pass.password, user_pass.createPsswdAt, user_pass.updatePsswdAt from user join user_pass on user.id=user_pass.userId where user.id=${id}`)
+      if(dataFullUser[0]) return dataFullUser
+      throw new Error(`No se encontró el usuario con id ${id}`);
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async update(id: number, dataUserUpdate: UpdateUserDto): Promise<User> {
+    try {
+      const resultUpdate = await this.userRepository.update({id: id},{...dataUserUpdate})
+      if(resultUpdate.affected && resultUpdate.affected > 0) {
+        let dataUseUpdate = await this.userRepository.findOneBy({id: id})
+        if (dataUseUpdate) return dataUseUpdate;
+          throw new Error(`No se encontró el usuario con id ${id} después de la actualización`);
+      }
+      throw new Error(`No existe el usuario con id ${id} para actualizar los campos`)
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         const duplicateField = this.getDuplicateField(error.message, dataUserUpdate);
-        throw {message: `El ${duplicateField} ya está asociado a un usuario`};
+        throw new Error (`El ${duplicateField} ya está asociado a un usuario`);
       }
       throw error;
     }
-
-    // const userUpdate = await this.userRepository.findOneBy({id: id})
-    // if (userUpdate) {
-    //   await this.userRepository.update({id: id}, updateUser)
-    // }
-    // return userUpdate
   }
 
-  async remove(id: number): Promise<User | null> {
-    const userRemove = await this.userRepository.findOneBy({id: id})
-    if (userRemove) {
-      await this.userRepository.delete({id: id})
+  async remove(id: number): Promise<User> {
+    try {
+      const userToRemove = await this.userRepository.findOneBy({id: id})
+      if (userToRemove) {
+        const userDeleted = await this.userRepository.delete({id: id})
+        if (userDeleted) return userToRemove;
+        throw new Error(`No se encontró el usuario con id ${id} para eliminar el registro`)
+      }
+      throw new Error (`No existe el usuario con id ${id} para eliminar el registro`)
+    } catch (error) {
+      throw error
     }
-    return userRemove;
   }
 
 

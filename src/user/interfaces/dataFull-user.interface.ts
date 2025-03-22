@@ -1,5 +1,5 @@
 
-export interface dataUseFull {
+export interface IDataFullUser {
   id: number;  
   name: string;
   lastname: string;
