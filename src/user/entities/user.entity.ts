@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class User {
@@ -10,12 +10,24 @@ export class User {
 
   @Column({ length: 50 })
   lastname: string;
+  
+  @Column({ length: 10, unique: true})
+  identityNum: string;
+
+  @Column({ length: 10, unique: true})
+  cellphoneNum: string;
+
+  @Column()
+  age: number;
+
+  @Column()
+  gender: number;
+
+  @Column({type: 'timestamp', nullable: true})
+  birthdate: Date;
 
   @Column({ length: 100, unique: true })
   email: string;
-
-  @Column({ default: 0 })
-  status: number;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

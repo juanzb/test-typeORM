@@ -3,21 +3,20 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { Response } from 'express';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('create')
-  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     let result = await this.userService.create(createUserDto)
     return result;
   }
 
   @Get('all')
   async getAllUsers(): Promise<User[]> {
-    return this.userService.getAll();
+    return await this.userService.getAll();
   }
 
   @Get(':id')
